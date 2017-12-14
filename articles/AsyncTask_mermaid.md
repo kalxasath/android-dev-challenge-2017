@@ -1,11 +1,16 @@
-﻿# AsyncTask
+﻿
+
+
+# AsyncTask
 AsyncTask is a generic class, meaning that it takes parameterized types in its constructor.
-
-![AsyncTask Generic Class](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/AsyncTask Generic Class.png)
-
+```mermaid
+graph LR
+A[Parameterized Types] --> B[Constructor]
+C((Java variable ...))
+```
 Each one of these generic parameters is to find as a Java variable argument with the three dots.
 Which means that it is technically passed as an array in Java World.
-### Three types of arguments
+### Three types
 The three types used by an AsyncTask are the following:
 
 > **Params**, parameter type sent to the task upon execution.
@@ -15,27 +20,26 @@ The three types used by an AsyncTask are the following:
 > **Result**, the type of the result of the background computation.
 
 These three parameters correspond to three primary functions you can override in AsyncTask.
-
-![AsyncTask Primary Functions](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/AsyncTask Primary Functions.png)
-
+```mermaid
+graph LR
+A[doInBackground]
+B[onProgressUpdate]
+C[onPostExecute]
+```
 There is also an onPreExecute function to help complete the pattern.
-
-![AsyncTask onPreExecute Function](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/AsyncTask onPreExecute Function.png)
-
+```mermaid
+graph LR
+A[onPreExecute]
+```
 ### Execute AsyncTask
 You call **Execute** with the parameters to be set to the background task.
-```java
-new myAsyncTask.execute(args)
+```mermaid
+graph TB
+PE[onPreExecute ] --> IB[doInBackground]
+IB --> PB[publishProgress]
+PB --> UI[UI thread]
+IB --> PoE[onPostExecute]
 ```
-### Execution plan
-
-![AsyncTask Execution Plan](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/AsyncTask Execution Plan.png)
-
-### Execution plan - several steps
-
-![AsyncTask Several Steps](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/AsyncTask Several Steps.png)
-
-
 ### Implement AsyncTask
 The first to-do is to make an AsyncTask inside of the MainActicity.
 ```java
@@ -92,7 +96,8 @@ public class MainActivity extends AppCompatActivity {
             }
 		}
 	}
+
+
+	
 }
 ```
-### Resources for this article
-- Lesson 3 - Connect to the Internet
