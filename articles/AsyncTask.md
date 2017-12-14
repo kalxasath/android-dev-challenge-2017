@@ -1,7 +1,7 @@
 ﻿# AsyncTask
 AsyncTask is a generic class, meaning that it takes parameterized types in its constructor.
 
-![AsyncTask Generic Class](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/AsyncTask Generic Class.png)
+![AsyncTask Generic Class](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/AsyncTask%20Generic%20Class.png)
 
 Each one of these generic parameters is to find as a Java variable argument with the three dots.
 Which means that it is technically passed as an array in Java World.
@@ -16,11 +16,11 @@ The three types used by an AsyncTask are the following:
 
 These three parameters correspond to three primary functions you can override in AsyncTask.
 
-![AsyncTask Primary Functions](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/AsyncTask Primary Functions.png)
+![AsyncTask Primary Functions](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/AsyncTask%20Primary%20Functions.png)
 
 There is also an onPreExecute function to help complete the pattern.
 
-![AsyncTask onPreExecute Function](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/AsyncTask onPreExecute Function.png)
+![AsyncTask onPreExecute Function](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/AsyncTask%20onPreExecute%20Function.png)
 
 ### Execute AsyncTask
 You call **Execute** with the parameters to be set to the background task.
@@ -29,11 +29,11 @@ new myAsyncTask.execute(args)
 ```
 ### Execution plan
 
-![AsyncTask Execution Plan](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/AsyncTask Execution Plan.png)
+![AsyncTask Execution Plan](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/AsyncTask%20Execution%20Plan.png)
 
 ### Execution plan - several steps
 
-![AsyncTask Several Steps](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/AsyncTask Several Steps.png)
+![AsyncTask Several Steps](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/AsyncTask%20Several%20Steps.png)
 
 
 ### Implement AsyncTask
