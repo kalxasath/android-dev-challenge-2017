@@ -32,7 +32,7 @@ ContentResolver resolver = getContentResolver();
 ```
 A ContentResolver manages what content providers are talking to what apps, and keeping all the data in sync, to not turn into a huge traffic jam. The content resolver acts as an intermediary between each app and the content provider, or providers, it wants to access. It handles inter-process communication and keeps everything in sync and running smoothly. Even if you have five processes accessing two content providers.
 
-So wherever we want to use a Content Provider, we'll need to do it through a ContentResolver.
+So wherever you want to use a Content Provider, you'll need to do it through a ContentResolver.
 
 ### 3. Pick one of four basic actions on the data: query, insert, update, delete
 ```java
@@ -44,7 +44,7 @@ resolver.query or resolver.insert or resolver.update or resolver.delete
 ```java
 Cursor cursor = resolver.query(DroidTermsExampleContract.CONTENT_URI, null, null, null, null);
 ```
-To specify what data we're actually interested in reading or manipulating, we need to learn about an additional object called a URI.
+To specify what data you're actually interested in reading or manipulating, you need to learn about an additional object called a URI.
 URI stands for Uniform Resource Identifier, URLs are a subset of URIs that are specifically met to identify network locations such as websites and files on the Web.
 A URI is used to specifically identify or give the location of some data.
 examine what data has an URI
@@ -53,7 +53,7 @@ Uri myUri = DroidTermsExampleContract.CONTENT_URI;
 Log.d("GV", myUri.toString());
 // outputs => content://com.example.udacity.droidtermsexample/terms
 ```
-This location is how we know exactly what type of data you're querying for.
+This location is how you know exactly what type of data you're querying for.
 * content: => Content Provider Prefix
 * com.example.udacity.droidtermsexample => Content Authority
 * terms => Specific Data
@@ -68,6 +68,49 @@ For more information about each Content Provider search for his own contract inf
 
 ### 5. In the case of reading from the ContentProvider, display the information in the UI
  Last but not least
+
+## DroidTermsExampleContract : The Query Method & Parameters
+
+The Query method returns a cursor which is exactly the same object returned by Android SQLite database class.
+
+Cursors are iterators that provide read/write access to the data of a Content Provider.
+```java
+Cursor cursor = resolver.query(DroidTermsExampleContract.CONTENT_URI, null, null, null, null);
+```
+These null parameters when they are not null, relate to what is know as the projection, selection, selection arguments and sort order of the data returned by the query method.
+```java
+Cursor cursor = resolver.query(DroidTermsExampleContract.CONTENT_URI, <projection>, <selection>, <selection arguments>, <sort order>);
+```
+* ***projection***, A projection in SQL is used to narrow down the number of columns returned.
+* ***selection***, A selection along with the ***selection arguments*** are used to narrow down the number of rows returned based on some criteria.
+* ***sort order***, The sort order determines the order you get the data back in.
+
+In general, when you pass in null, it means no sorting and grab everything.
+
+## Working with Cursors Review
+
+There are a variety of ways to get information from your cursor object and to iterate through the rows inside of a cursor.
+* A cursor has a position, which is the row it's currently pointing to.
+* When you first get your cursor back from the query method, in it's position at row negative one **-1** which is nothing.
+* When you call **.moveToNext()**, it moves the cursor to the next row that it can. And then it will wither return true or false depending on if the move was successful or not.
+* When you call **.moveToFirst()**, it moves the cursor back to the first row.
+* Each column in the cursor has an index. When you're at a row and you want to know some information it's important to know the column index. You can look up this column index by using the **.getColumnIndex(String columnHeading)** method and passing the column heading. The column heading is found in the contract.
+* **.get<Type>(int ColumnIndex)**, then you can use one of the get methods to get the actual value. Which get method you use depends on the type of data that you're expecting to get back.
+* **.getCount()**, returns the number of rows that are in the cursor.
+* **.close()**,  and close should be called when you're done interacting with your cursor. If you don't do this you could create a memory leak.
+### Here's a handy code snippet for iterating over all of the rows that are cursor and then finally printing out what in the table.
+```java
+	int wordCol = cursor.getColumnIndex(DroidTermsExampleContract.COLUMN_WORD);
+	int defCol = cursor.getColumnIndex(DroidTermsExampleContract.COLUMN_DEFINITION);
+	
+	while(cursor.moveToNext()) {
+		String word = cursor.getString(wordCol);
+		String definition = cursor.getString(defCol);
+		Log.v("GV", word + "-" + definition);
+	}
+	cursor.close();
+```
+
 
  ## Code Examples
  ### 

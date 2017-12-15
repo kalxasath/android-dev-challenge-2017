@@ -103,6 +103,10 @@ public class MainActivity extends AppCompatActivity {
 ## Resources for this article
 - Lesson 3 - Connect to the Internet
 
+## Related Links
+* [How to pass data from Async Class to Main Activity class
+](https://stackoverflow.com/questions/36483655/how-to-pass-data-from-async-class-to-main-activity-class)
+
 ## License
 ```
 With respect to the rightholders UDACITY, GOOGLE 

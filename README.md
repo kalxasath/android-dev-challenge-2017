@@ -17,6 +17,7 @@ This repository contains notes as a cross-reference to the topics learned during
 
 ### What you will not find in this repository
 * You will not find enriched content that goes beyond the level of study.
+* You will not find content for advance android developers
 
 ## My Articles
 > **Note:**
