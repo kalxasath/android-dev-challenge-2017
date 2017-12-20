@@ -27,7 +27,7 @@ This repository contains notes as a cross-reference to the topics learned during
 
 * [AsyncTask](https://github.com/kalxasath/android-dev-challenge-2017/blob/master/articles/AsyncTask.md)
 * [Content Providers](https://github.com/kalxasath/android-dev-challenge-2017/blob/master/articles/Content%20Providers.md)
-* [Building a Content Provider](https://github.com/kalxasath/android-dev-challenge-2017/blob/master/articles/Building%20a%20Content%20Provider)
+* [Building a Content Provider](https://github.com/kalxasath/android-dev-challenge-2017/blob/master/articles/Building%20a%20Content%20Provider.md)
 
 ## License
 ```
