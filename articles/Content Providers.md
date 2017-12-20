@@ -205,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
 
 } // MainActivity 
  ```
- ### The Content Provider DroidTermsExampleContract (manifest, java class)
+ ### The contract DroidTermsExampleContract (manifest, java class) which uses the content provider
  ```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.udacity.example.droidtermsprovider">
@@ -343,3 +343,4 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
+> Written with [StackEdit](https://stackedit.io/).

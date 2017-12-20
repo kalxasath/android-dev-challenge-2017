@@ -23,8 +23,11 @@ This repository contains notes as a cross-reference to the topics learned during
 > **Note:**
 > Because I started to write those articles in the middle of my study, the first 8 lessons are not covert at this point in time. I will come back when I finish the whole course to complete it.
 
+[![Lastupdate](https://img.shields.io/badge/last%20updated-on%2020%20December%202017-orange.svg)](https://www.java.com)
+
 * [AsyncTask](https://github.com/kalxasath/android-dev-challenge-2017/blob/master/articles/AsyncTask.md)
 * [Content Providers](https://github.com/kalxasath/android-dev-challenge-2017/blob/master/articles/Content%20Providers.md)
+* [Building a Content Provider](https://github.com/kalxasath/android-dev-challenge-2017/blob/master/articles/Building%20a%20Content%20Provider)
 
 ## License
 ```
