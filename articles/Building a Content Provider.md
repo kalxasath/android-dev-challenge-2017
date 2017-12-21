@@ -28,6 +28,8 @@ package com.example.android.todolist.data;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -110,7 +112,7 @@ You will use the structure of the Empty Content Provider and in the onCreate you
 
 First create a member variable name mTaskDbHelper for the TaskDbHelper, then in the onCreate you'll assigm this to a new task FbHelper passing in the context.
 ```java
-	// Member variable for a TaskDbHelper that's initialized in the onCreate() method
+    // Member variable for a TaskDbHelper that's initialized in the onCreate() method
     private TaskDbHelper mTaskDbHelper;
 
     /* onCreate() is where you should initialize anything you’ll need to setup
@@ -124,7 +126,7 @@ First create a member variable name mTaskDbHelper for the TaskDbHelper, then in 
         Context context = getContext();
         // Create the DbHelper
         mTaskDbHelper = new TaskDbHelper(context);
-		// return true because this method is done
+        // return true because this method is done
         return true;
     }
 ```
@@ -218,8 +220,8 @@ For the ToDo list app, we'll be interested in displaying the contents of a curso
 	content://<authority>/tasks
 	content://<authority>/tasks/#
 ```
-Because 	all the URIs look pretty similar, with the same starting scheme and authority. And it's good practice to store any URI components that you commonly use as constants in the contract class.
-> Remember, the contract is designed to keep track of constants that will help you access data in a given database.
+Because 	all the URIs look pretty similar, with the same starting scheme and authority. And it's good practice to store any URI components that you commonly use as constants in the **contract class**.
+> Remember, the **contract** is designed to keep track of constants that will help you access data in a given database.
 
 So we'll add to it by including the most commonly used URIs and paths. As we've seen, to access data from the task content provider you need to define the following URIs.
 
@@ -228,17 +230,213 @@ So we'll add to it by including the most commonly used URIs and paths. As we've 
 One for the task directory and one for a single task.
 ```java
 	// define the Scheme
-	Scheme = content://
+	URI Scheme = content://
 	// define the Content authority
-	Content authority = reference to the provider (com.exmaple.android.todolist)
+	Content Authority = reference to the provider (com.exmaple.android.todolist)
 	// define the base content URI wich is the scheme and the authority together.
-	Base content = URI scheme + authority
+	Base content URI = URI Scheme + Content Authority
 	// After that, is a path, and paths point to specific table or file.
 	Path = to specific data
 	// And finally, inside your task entry class, you'll want to have a constant
 	// for the most specific content URI that combines all of these elements.
 	Content URI = base content URI + path
 ```	
+
+### add the constants to the contract
+```java
+/*
+* Copyright (C) 2016 The Android Open Source Project
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
+package com.example.android.todolist.data;
+
+import android.net.Uri;
+import android.provider.BaseColumns;
+
+
+public class TaskContract {
+
+    /* Add content provider constants to the Contract
+     Clients need to know how to access the task data, and it's your job to provide
+     these content URI's for the path to that data:
+        1) Content authority,
+        2) Base content URI,
+        3) Path(s) to the tasks directory
+        4) Content URI for data in the TaskEntry class
+    */
+    // The authority, which is how your code knows which Content Provider to access
+    // The authority is defined in the Android Manifest, so copy and paste it from there.
+    public static final String AUTHORITY = "com.example.android.todolist";
+
+    // The base content URI = "content://" + <authority>
+    public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
+
+    // Define the possible paths for accessing data in this contract
+    // This is the path for the "tasks" directory, that will be appended to the base content URI
+    public static final String PATH_TASKS = "tasks";
+    // If the provider kept track of multiple tables of data, you would include multiple
+    // corresponding path constants here.
+
+// TaskEntry is an inner class that defines the contents of the task table     
+public static final class TaskEntry implements BaseColumns {
+
+        // Finally, inside this task entry class in the contract,
+        // which keeps track of the data that a task entry contains,
+        // you should create a complete URI for these entries as a constant
+        // called Content URI.
+        // TaskEntry content URI = base content URI + path
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_TASKS).build();
+        // This final content URI will include the scheme, the authority, and our tasks path.
+
+        // Task table and column names
+        public static final String TABLE_NAME = "tasks";
+
+        // Since TaskEntry implements the interface "BaseColumns", it has an automatically produced
+        // "_ID" column in addition to the two below
+        public static final String COLUMN_DESCRIPTION = "description";
+        public static final String COLUMN_PRIORITY = "priority";
+
+
+        /*
+        The above table structure looks something like the sample table below.
+        With the name of the table and columns on top, and potential contents in rows
+
+        Note: Because this implements BaseColumns, the _id column is generated automatically
+
+        tasks
+         - - - - - - - - - - - - - - - - - - - - - -
+        | _id  |    description     |    priority   |
+         - - - - - - - - - - - - - - - - - - - - - -
+        |  1   |  Complete lesson   |       1       |
+         - - - - - - - - - - - - - - - - - - - - - -
+        |  2   |    Go shopping     |       3       |
+         - - - - - - - - - - - - - - - - - - - - - -
+        ...
+         - - - - - - - - - - - - - - - - - - - - - -
+        | 43   |   Learn guitar     |       2       |
+         - - - - - - - - - - - - - - - - - - - - - -
+         */
+    }
+}
+```
+## Build The URIMatcher
+
+Now you have to find the two types of content URIs that the ToDo list app will use to do things like *insert and query data*.  The first type gives us access to a directory of tasks. And the second to a single task.
+
+And you've added constants in your contract class to help you refer to these URIs. But how does this all fit in to how the provider works?
+
+The provider has to have a way to recognixe the different URIs that are sent to it, and based on the path, match it with specific data. So whether it receives a URI for a large directory, or just a single row of data, it can interact with it correctly in each case.
+
+> And guess what. **It's up to you to code this URI recognition.**
+
+One way to recognize specific URIs would be look at the URI that's passed to your provider whenever data is accessed, parse it as a string and see if that string matches the format for a directory or a single row of data.
+
+For example you could write an if statement like, if the UriString.is equal to ...
+```java
+if( UriString.equals("content://com.example.android.todolist/tasks") ) {
+    // The URI identifies directory operations
+    deleteAllTasks();
+} else if( UriString.equals("content://com.example.android.todolist/tasks" + "some_ID?") ) {
+    // The URI identifies single row operations
+    deleteOneTask();
+}
+```
+But this becomes tricky when you want to check if a string has an integer ID at the end. And these statemets can become really long and hard to read. But there's a better way to do this with something called a UriMatcher. The UriMatcher determines what kind of URI the provider receives and match it to an integer constant. So that you can easily make a switch statement instead of using a series of long if statments that check for equality.
+ 
+ ### add to the Empty Content Provider code
+ ```java
+// Verify that TaskContentProvider extends from ContentProvider and implements required methods
+public class TaskContentProvider extends ContentProvider {
+
+    // (1) Define final integer constants for the directory of tasks and a single item.
+    // It's convention to use 100, 200, 300, etc for directories,
+    // and related ints (101, 102, ..) for items in that directory.
+    public static final int TASKS = 100;
+    public static final int TASKS_WITH_ID = 101;
+
+    // Now let's actually build our UriMatcher and associate these constants with the correct URI.
+    // (3) Declare a static variable for the Uri matcher that you construct
+    private static final UriMatcher sUriMatcher = buildUriMatcher();
+    // this is a member variable but starts with a lowercase s because it's static variable.
+
+    // (2) Define a static buildUriMatcher method that associates URI's with their int match
+    public static UriMatcher buildUriMatcher() {
+        // first create a new UriMatcher object, by passing in the constant UriMatcher.nomatch
+        UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+        // Add the matches you want, by telling it which URI structures to recognize
+        // and the integer constants they'll match with.
+        // Using the method addURI(String authority, String path, int code)
+        // directory
+        uriMatcher.addURI(TaskContract.AUTHORITY, TaskContract.PATH_TASKS, TASKS);
+        // single item
+        uriMatcher.addURI(TaskContract.AUTHORITY, TaskContract.PATH_TASKS + "/#", TASKS_WITH_ID);
+
+        return uriMatcher;
+    }
+.....
+}
+```
+For example after creating the UriMatcher, you can call UriMatcher.match and pass in a URI. The match method returns an int value which will be the integer that you associated with the passed in URI structure using the add URI method. 
+```java
+    int match = sUriMatcher.match(uri);
+```
+And once you have this match number, you can write a switch statment to programm different behavior for a match equal to tasks.
+```java
+    switch (match) {
+        // handle different integer matches
+        case TASKS:
+            // Handle directory task case
+            retCursor = db.query(TABLE_NAME, projection, selection, slectionsArgs, null, null, sortOrder);
+            break;
+        case TASK_WITH_ID:
+            // Handle single task case
+            break;
+        default:
+            throw new UnsupportedOperationException("Unknown uri: " + uri);
+    }
+```
+### Example of Using the delete function on a ContentResolver
+```java
+    // The constructed URI will be:
+    // content://com.example.android.todolist/tasks/4.
+    // The URIMatcher will recognize this URI as identifying a single row
+    // in the tasks database with a row id = 4, so it will match it to
+    // the TASK_WITH_ID integer constant
+    int id = 4;
+    String idString = "" + id;
+    Uri uri = TaskContract.TaskEntry.CONTENT_URI;
+    uri = uri.buildUpon().appendPath(idString).build();
+
+    // This delete call will get to our TaskContentProvider and then
+    // the UriMatcher will match the passed in URI to the TASK_WITH_ID
+    // integer constant. This is important for the delete method because
+    // the ContentProvider needs to be able to identify and delete just
+    // the one row with ID = 4. It shouldn’t delete the entire directory
+    // of tasks.
+    getContentResolver().delete(uri, null, null);
+```
+### Example of different delete behavior depending on the recognized URI.
+![Different delete behavior depending on URI](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/Different%20delete%20behavior%20depending%20on%20URI.png)
+
+## Resolver To Database Flow
+Now that you've build a URIMatcher, let's go through the detailed, end-toend flow for how data moves from the task database to the ToDo list user interface. Let's say that your app is querying for data to display in the UI. first from the UI code the app will get a content Resolver and call query on it, passing in the URI for the exact provider and data you want to read.
+
+The the Resolver finds the correct task content provider based on the authority of the passed in URI and passes on the query. The Provider's query function will then use the URIMatcher you've built to decide how to react to the passed in URI and determine what kind of data to retrieve. Whether that's one row of data or the directory of all tasks or some other specific selection. Base on the match, the query function will basically translate the URI and other parameters into the correct SQL code for selected data. So, using the Matcher and the code for your query, the provider will then retrive the desired data from the underlying database.
+![Resolver To Database Flow](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/Resolver%20To%20Database%20Flow.png)
+Then the call travels all the way back to the Resolver in your UI code and returns a cursor wuth that data, and this is how all calls from your UI to the database will function, passing through the provider to reach the database.
 
 
 ## License
