@@ -138,8 +138,6 @@ After that you'll have to register it in the Android manifest.
             android:exported="false"/>
 ```
 
- ## Resources for this article
-- Lesson 10 - Building a Content Provider
 
 ## Define The URI Structure
 You already know what the task data looks like and next you'll need to tell the content provider how to access that data. Earlier, when you communicated with the provider in the quiz example app, you saw how you always needed to make data request through a content resolver.
@@ -435,9 +433,152 @@ And once you have this match number, you can write a switch statment to programm
 Now that you've build a URIMatcher, let's go through the detailed, end-toend flow for how data moves from the task database to the ToDo list user interface. Let's say that your app is querying for data to display in the UI. first from the UI code the app will get a content Resolver and call query on it, passing in the URI for the exact provider and data you want to read.
 
 The the Resolver finds the correct task content provider based on the authority of the passed in URI and passes on the query. The Provider's query function will then use the URIMatcher you've built to decide how to react to the passed in URI and determine what kind of data to retrieve. Whether that's one row of data or the directory of all tasks or some other specific selection. Base on the match, the query function will basically translate the URI and other parameters into the correct SQL code for selected data. So, using the Matcher and the code for your query, the provider will then retrive the desired data from the underlying database.
+
 ![Resolver To Database Flow](https://raw.githubusercontent.com/kalxasath/android-dev-challenge-2017/master/assets/Resolver%20To%20Database%20Flow.png)
+
 Then the call travels all the way back to the Resolver in your UI code and returns a cursor wuth that data, and this is how all calls from your UI to the database will function, passing through the provider to reach the database.
 
+## Overview Of Provider Methods
+There are six methods that every content provider is required yo have.
+* onCreate which initializes the provider, and which you've already implemented.
+* four so-called CRUD Methods, where CRUD stands for Create, Read, Update and Delete. And these are the four main functions used for peristent data storage. This will be pretty similar to the CRUD functions you implemented in the SQLite lesson.
+* getType which returns the MIME type of the content being returned. And a MIME type is just a way of identifying what format the content is in, in a similar way to file types.
+```java
+String getType(Uri uri)
+```
+
+### The CRUD methods
+**insert**, To let users of your app create new data, you need to code the content provider's insert method.  This will take in a content Uri which tells the correct directory to insert data into, and a ContentValues object that contains the new data to insert. After the data us inserted, this returns a newly created content Uri that tells you the location of the inserted data.
+```java
+Uri insert(Uri uri, ContentValues values)
+```
+**query**, To read data and display it in your UI, you'll write the query method which asks for data from your content provider. This returns a cursir that contains a row, or rows, of data that th query has asked for.
+```java
+Cursor query (Uri uri, String[] projection, String select, String[] sections Args, String sortOrder)
+```
+**update**,  This takes the same parameters as entered, so it know where to update data by the Uri, and with what ContentValues. And this will return an integer value for the number of rows that were updated.
+```java
+int update(Uri uri, ContentValues values, String selection, String[] selectionArgs)
+```
+**delete**, The delete method needs to know the Uri that points to the row, or rows, to delete. And this should return the number of rows deleted.
+```java
+int delete(Uri uri, String selection, String[] SelectionsArgs)
+```
+
+## Coding the INSERT method
+With the insert method we can add data to our task database. Our end goal for implementing this function is to hook it up to our add task activity UI, so then when a user types in a new task with a selected piority and clicks the add button, this will insert newly created data into our task database. One thing that the provider will do differently than straight up SQL code is to have different actions for different URIs. In this way, it can do some simple data validation by making sure it only responds to valid URIs.
+
+When you insert data, you'll be inserting a new row of data into the entire tasks directory, which holds all of our existing data. So you'll want your content provider to respond only to the URI that identifies that directory. And to handle this case, you'll use your URI matcher and a switch statement.
+
+```java
+@Override
+    public Uri insert(@NonNull Uri uri, ContentValues values) {
+        // (1) Get access to the task database (to write new data to)
+        // So that we can write new data to it, we'll use mTaskDbHelper.getWritableDatabase()
+        final SQLiteDatabase db = mTaskDbHelper.getWritableDatabase();
+
+        // (2) Write URI matching code to identify the match for the tasks directory
+        // This match will be either 100 for all tasks or 101 for a task with ID, or an unrecognized URI
+        int match = sUriMatcher.match(uri);
+
+        // (3) Insert new values into the database
+        // (4) Set the value for the returnedUri and write the default case for unknown URI's
+
+        Uri returnUri;
+
+        // We want to check these cases with a switch case and respond to only the tasks case.
+        // If the tasks case is met, we can insert a new row of data into this directory.
+        // We can't insert data into just one row like in the task with id case.
+        // And if we receive any other type URI or an invalid one, the default behavior
+        // will be to throw an UnsupportedOperationException and print out an
+        // Unknown uri message.
+        switch(match) {
+            case TASKS:
+                // We'll insert new data into the tasks directory by calling insert om our database.
+                // Inserting values into tasks table
+                long id = db.insert(TaskContract.TaskEntry.TABLE_NAME, null, values);
+                // If the insert wasn't successful, this ID will be -1
+                // But if ths insert is successful, we want the provider's insert method to take
+                // that unique row ID and create and return a URI for that newly inserted data.
+
+                // So first, let's write an if that checks that this insert was successful.
+                if ( id > 0 ) {
+                    // Success, the insert worked and we can construct the new URI
+                    // that will be our main content URI, which has the authority
+                    // and tasks path, with the id appended to it.
+                    returnUri = ContentUris.withAppendedId(TaskContract.TaskEntry.CONTENT_URI, id);
+                    // contentUris is an Android class that contains helper methods for
+                    // constructing URIs
+                } else {
+                    // Otherwise, we'll throw a SQLiteException, because the insert failed.
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                }
+
+                break;
+            // Default case throws an UnsupportedOperationException
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+
+        // TODO (5) Notify the resolver if the uri has been changed, and return the newly inserted URI
+        // To notify the resolver that a change has occurred at this particular URI,
+        // you'll do this using the notify change function.
+        // This is so that the resolver knows that something jas changed, and
+        // can update the database and any associated UI accordingly
+        getContext().getContentResolver().notifyChange(Uri, null);
+
+        return returnUri;
+    }
+```
+### Hook It Up To The UI
+Now that we've coded the insert method in our provider class, we can call it from the AddTaskActivity using a content resolver. We'll want to link a call to the insert method to this add button, so that it's called whenever a user inputs a task and clicks add.
+```java
+    /**
+     * onClickAddTask is called when the "ADD" button is clicked.
+     * It retrieves user input and inserts that new task data into the underlying database.
+     */
+    public void onClickAddTask(View view) {
+        // Not yet implemented
+        // (6) Check if EditText is empty, if not retrieve input and store it in a ContentValues object
+        // To retrieve a user's input description, we have to retrieve the text they
+        // entered into the edit text view in the add task layout.
+        String input = ((EditText) findViewById(R.id.editTextTaskDescription)).getText().toString();
+
+        // We don't want any empty tasks being created
+        // If someone presses the add button without typing in a task to do.
+        if (input.length() == 0) {
+            return;
+        }
+
+        // We'll create a new ContentValues object to place this task data into.
+        ContentValues contentValues = new ContentValues();
+
+        // Put the task description and selected mPriority into the ContentValues
+        contentValues.put(TaskContract.TaskEntry.COLUMN_DESCRIPTION, input);
+        contentValues.put(TaskContract.TaskEntry.COLUMN_PRIORITY, mPriority);
+
+        // (7) Insert new task data via a ContentResolver
+        // Then we need to insert these values into our database with
+        // a call to a content resolver
+        Uri uri = getContentResolver().insert(TaskContract.TaskEntry.CONTENT_URI, contentValues);
+
+        // This insert method should return a URI if it works.
+
+        // (8) Display the URI that's returned with a Toast
+        // [Hint] Don't forget to call finish() to return to MainActivity after this insert is complete
+        if (uri != null) {
+            Toast.makeText(getBaseContext(), uri.toString(), Toast.LENGTH_LONG).show();
+        }
+
+        // call finish() to tell that this activity is over and so
+        // we should return to the main activity after an insert is complete.
+        finish();
+    }
+```
+
+
+ ## Resources for this article
+- Lesson 10 - Building a Content Provider
 
 ## License
 ```
