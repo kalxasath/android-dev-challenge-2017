@@ -27,11 +27,17 @@ This is a typical touch helper to the RecyclerView
 
                 // (1) Construct the URI for the item to delete
                 //[Hint] Use getTag (from the adapter code) to get the id of the swiped item
+                int id = (int) viewHolder.itemView.getTag();
+
+                String stringId = "" + id;
+                Uri uri = TaskContract.TaskEntry.CONTENT_URI;
+                uri = uri.buildUpon().appendPath(stringId).build();
 
                 // (2) Delete a single row of data using a ContentResolver
-
-                // (3) Restart the loader to re-query for all tasks after a deletion
+                getContentResolver().delete(uri, null, null);
                 
+                // (3) Restart the loader to re-query for all tasks after a deletion
+                getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
             }
         }).attachToRecyclerView(mRecyclerView);
     }
